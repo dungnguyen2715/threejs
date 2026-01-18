@@ -24,7 +24,6 @@ export default class Visualizer {
     this.createCenterElement();
     this.createBars();
     this.createParticles();
-
     this.createFloor();
 
     this.scene.add(this.group);

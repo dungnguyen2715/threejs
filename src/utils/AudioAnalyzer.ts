@@ -22,6 +22,17 @@ export default class AudioAnalyzer {
     this.dataArray = new Uint8Array(bufferLength);
   }
 
+  // src/utils/AudioAnalyzer.ts
+  toggle() {
+    if (this.audio.paused) {
+      // Luôn đảm bảo context chạy trước khi play
+      if (this.context.state === "suspended") this.context.resume();
+      this.audio.play();
+    } else {
+      this.audio.pause();
+    }
+  }
+
   play() {
     if (this.context.state === "suspended") this.context.resume();
     this.audio.play();

@@ -37,7 +37,7 @@ export default class World {
     // Bạn truyền scene và camera.instance vào để Composer biết nó cần render cái gì
     this.renderer.initPostProcessing(this.scene, this.camera.instance);
     // 4. Setup âm nhạc & Visualizer
-    this.analyzer = new AudioAnalyzer("/sounds/music.mp3");
+    this.analyzer = new AudioAnalyzer("/sounds/music3.mp3");
     this.visualizer = new Visualizer(this.scene, this.analyzer, this.time);
 
     // 5. Lắng nghe sự kiện
@@ -49,6 +49,24 @@ export default class World {
     window.addEventListener("click", () => this.analyzer.play(), {
       once: true,
     });
+
+    // 5. Lắng nghe sự kiện bàn phím cho Space
+    window.addEventListener("keydown", (event) => {
+      if (event.code === "Space") {
+        event.preventDefault(); // Ngăn trang bị cuộn xuống
+        this.toggleMusic();
+      }
+    });
+
+    // Click đầu tiên để kích hoạt AudioContext
+    window.addEventListener("click", () => this.analyzer.play(), {
+      once: true,
+    });
+  }
+
+  toggleMusic() {
+    // Gọi thẳng analyzer vì chỉ có 1 quả cầu
+    this.analyzer.toggle();
   }
 
   resize() {
