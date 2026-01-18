@@ -3,7 +3,7 @@ import AudioAnalyzer from "../utils/AudioAnalyzer";
 import vertexShader from "../shaders/vertex/barVertex.glsl?raw";
 import fragmentShader from "../shaders/fragment/barFragment.glsl?raw";
 import type Time from "../utils/Time";
-import { Reflector } from "three/examples/jsm/Addons.js";
+import { GLTFLoader, Reflector } from "three/examples/jsm/Addons.js";
 
 export default class Visualizer {
   scene: THREE.Scene;
@@ -15,18 +15,55 @@ export default class Visualizer {
   centerSphere!: THREE.Mesh;
   particles!: THREE.Points;
 
+  djTable: THREE.Group | null = null;
+
   constructor(scene: THREE.Scene, analyzer: AudioAnalyzer, time: Time) {
     this.scene = scene;
     this.analyzer = analyzer;
     this.time = time;
     this.group = new THREE.Group();
 
+    this.loadDJTableModel();
     this.createCenterElement();
     this.createBars();
     this.createParticles();
     this.createFloor();
 
     this.scene.add(this.group);
+  }
+
+  private loadDJTableModel() {
+    const loader = new GLTFLoader();
+
+    loader.load(
+      "/models/dj_set.glb", // Đường dẫn file bạn vừa copy vào
+      (gltf) => {
+        this.djTable = gltf.scene;
+
+        // Điều chỉnh kích thước và vị trí bàn DJ
+        this.djTable.scale.set(0.3, 0.3, 0.3);
+        this.djTable.position.set(0, 0, 0);
+
+        // Duyệt qua các phần của model để bật hiệu ứng phát sáng (nếu có)
+        this.djTable.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            // Làm cho các chi tiết trên bàn DJ có thể phản chiếu ánh sáng Neon
+            if (mesh.material instanceof THREE.MeshStandardMaterial) {
+              mesh.material.emissiveIntensity = 0.5;
+            }
+          }
+        });
+
+        this.group.add(this.djTable);
+      },
+      (xhr) => {
+        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      },
+      (error) => {
+        console.error("Lỗi khi tải model:", error);
+      },
+    );
   }
 
   private createCenterElement() {
@@ -133,6 +170,25 @@ export default class Visualizer {
    */
   update(bassIntensity: number) {
     const data = this.analyzer.getFrequencyData();
+
+    // Trong hàm update(bassIntensity: number) của Visualizer.ts
+
+    if (this.djTable) {
+      // 1. Đồng bộ độ nảy (Scale) - như đã nói ở bước trước
+      const bounceScale = 0.3 * (1 + bassIntensity * 1.5);
+      this.djTable.scale.set(bounceScale, bounceScale, bounceScale);
+
+      // 2. TẠO HIỆU ỨNG TƯNG TƯNG (Position Y)
+      // 0.5 là độ cao gốc khi không có nhạc
+      // bassIntensity * 2.0 sẽ đẩy bàn DJ nhảy lên cao tối đa thêm 2 đơn vị khi bass cực mạnh
+      const jumpHeight = 0.5 + bassIntensity * 2.0;
+      this.djTable.position.y = jumpHeight;
+
+      // 3. Hiệu ứng rung lắc nhẹ (Tùy chọn)
+
+      // Xoay tròn đều
+      this.djTable.rotation.y += 0.005 + bassIntensity * 0.02;
+    }
 
     // 1. Xử lý Bass cho Quả cầu và Hạt bụi
     const bassScale = 1 + bassIntensity * 1.5;
