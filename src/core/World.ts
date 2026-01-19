@@ -18,7 +18,7 @@ export default class World {
   analyzer!: AudioAnalyzer;
   visualizer!: Visualizer;
   canvas!: HTMLCanvasElement;
-  private smoothBass: number = 0; // Thêm biến này ở trên cùng của class
+  private smoothBass: number = 0;
   private isZoomedIn: boolean = false;
 
   constructor() {
@@ -33,10 +33,8 @@ export default class World {
 
     // 3. Khởi tạo Core (Truyền các tham số cần thiết)
     this.scene = new Scene().instance;
-    this.camera = new Camera(); // File Camera.ts của bạn tự tìm canvas
+    this.camera = new Camera();
     this.renderer = new Renderer(this.canvas, this.sizes);
-    // 2. KÍCH HOẠT POST-PROCESSING TẠI ĐÂY
-    // Bạn truyền scene và camera.instance vào để Composer biết nó cần render cái gì
     this.renderer.initPostProcessing(this.scene, this.camera.instance);
     // 4. Setup âm nhạc & Visualizer
     this.analyzer = new AudioAnalyzer("/sounds/music3.mp3");
@@ -65,10 +63,6 @@ export default class World {
       once: true,
     });
 
-    this.setupZoomKey();
-  }
-
-  private setupZoomKey() {
     window.addEventListener("keydown", (event) => {
       if (event.code === "Enter") {
         this.toggleZoom();
@@ -88,6 +82,7 @@ export default class World {
         z: 6,
         duration: 2, // Thời gian bay là 2 giây
         ease: "expo.out",
+        onUpdate: () => this.camera.instance.updateProjectionMatrix(),
       });
 
       gsap.to(this.camera.instance, {
@@ -104,6 +99,7 @@ export default class World {
         z: 18,
         duration: 2.5,
         ease: "power2.inOut",
+        onUpdate: () => this.camera.instance.updateProjectionMatrix(),
       });
       gsap.to(this.camera.instance, {
         fov: 75,
@@ -114,7 +110,6 @@ export default class World {
   }
 
   toggleMusic() {
-    // Gọi thẳng analyzer vì chỉ có 1 quả cầu
     this.analyzer.toggle();
   }
 
@@ -123,12 +118,9 @@ export default class World {
     this.renderer.resize();
   }
 
-  // src/core/World.ts -> Hàm update()
-
   update() {
     this.camera.update();
 
-    // 1. Tính toán cường độ Bass thô
     const audioData = this.analyzer.getFrequencyData();
     let bass = 0;
     const samples = 10;

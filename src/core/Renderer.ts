@@ -46,12 +46,7 @@ export default class Renderer {
   private setPostProcessing() {
     // 1. Khởi tạo Composer
     this.composer = new EffectComposer(this.instance);
-
-    // 2. Pass 1: Render toàn bộ Scene gốc
-    // Chúng ta cần lấy scene và camera từ World khi render (xem hàm update bên dưới)
   }
-
-  // src/core/Renderer.ts -> Hàm initPostProcessing
 
   initPostProcessing(scene: THREE.Scene, camera: THREE.Camera) {
     const renderPass = new RenderPass(scene, camera);
@@ -59,9 +54,9 @@ export default class Renderer {
 
     this.bloomPass = new UnrealBloomPass(
       new THREE.Vector2(this.sizes.width, this.sizes.height),
-      1.5,
-      0.5, // Tăng Radius một chút để sương mù trông "quyện" hơn
-      1, // GIẢM MẠNH THRESHOLD: Để các quầng sáng Bloom dễ xuất hiện hơn
+      1.5, // Strength
+      0.5, // Radius
+      1, // threshold
     );
     this.composer.addPass(this.bloomPass);
   }
@@ -77,7 +72,6 @@ export default class Renderer {
   }
 
   update(scene: THREE.Scene, camera: THREE.Camera) {
-    // Thay vì this.instance.render, chúng ta dùng composer
     if (this.composer) {
       this.composer.render();
     } else {

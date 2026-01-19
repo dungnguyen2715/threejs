@@ -170,23 +170,12 @@ export default class Visualizer {
    */
   update(bassIntensity: number) {
     const data = this.analyzer.getFrequencyData();
-
-    // Trong hàm update(bassIntensity: number) của Visualizer.ts
-
     if (this.djTable) {
       // 1. Đồng bộ độ nảy (Scale) - như đã nói ở bước trước
       const bounceScale = 0.2 * (1 + bassIntensity * 1.5);
       this.djTable.scale.set(bounceScale, bounceScale, bounceScale);
-
-      // 2. TẠO HIỆU ỨNG TƯNG TƯNG (Position Y)
-      // 0.5 là độ cao gốc khi không có nhạc
-      // bassIntensity * 2.0 sẽ đẩy bàn DJ nhảy lên cao tối đa thêm 2 đơn vị khi bass cực mạnh
       const jumpHeight = 0.5 + bassIntensity * 2.0;
       this.djTable.position.y = jumpHeight;
-
-      // 3. Hiệu ứng rung lắc nhẹ (Tùy chọn)
-
-      // Xoay tròn đều
       this.djTable.rotation.y += 0.005 + bassIntensity * 0.02;
     }
 
@@ -194,14 +183,12 @@ export default class Visualizer {
     const bassScale = 1 + bassIntensity * 1.5;
     this.centerSphere.scale.set(bassScale, bassScale, bassScale);
     this.centerSphere.rotation.y += 0.01;
-
     this.updateParticles(bassIntensity);
 
     // 2. Xử lý Mid cho các cột Bars
     this.bars.forEach((bar, index) => {
       const freq = data[index % 128];
       const material = bar.material as THREE.ShaderMaterial;
-
       // Cập nhật Uniforms cho Shader
       material.uniforms.uTime.value = this.time.elapsed * 0.001;
       material.uniforms.uAudioIntensity.value = freq / 255;

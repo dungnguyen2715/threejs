@@ -22,7 +22,7 @@ export default class Camera {
       this.defaultFOV,
       window.innerWidth / window.innerHeight,
       0.1,
-      150,
+      500,
     );
     this.instance.position.set(18, 15, 18);
   }
@@ -39,7 +39,6 @@ export default class Camera {
   // --- NÂNG CẤP 2: Hàm phản hồi âm thanh ---
   applyAudioReaction(bassIntensity: number) {
     // bassIntensity truyền vào từ World (0 đến 1)
-
     // 1. Zoom theo nhịp (FOV)
     const targetFOV = this.defaultFOV + bassIntensity * 35;
     this.instance.fov = THREE.MathUtils.lerp(this.instance.fov, targetFOV, 0.2);
@@ -47,7 +46,7 @@ export default class Camera {
 
     // 2. Rung lắc (Shake) khi Bass cực mạnh (> 0.8)
     if (bassIntensity > 0.8) {
-      const shake = 0.05;
+      const shake = 2;
       this.instance.position.x += (Math.random() - 0.5) * shake;
       this.instance.position.y += (Math.random() - 0.5) * shake;
     }
