@@ -6,6 +6,7 @@ import Time from "../utils/Time";
 import Sizes from "../utils/Sizes";
 import AudioAnalyzer from "../utils/AudioAnalyzer";
 import Visualizer from "../world/Visualizer";
+import gsap from "gsap";
 
 export default class World {
   // Sử dụng dấu ! để báo TS rằng chúng sẽ được khởi tạo
@@ -18,6 +19,7 @@ export default class World {
   visualizer!: Visualizer;
   canvas!: HTMLCanvasElement;
   private smoothBass: number = 0; // Thêm biến này ở trên cùng của class
+  private isZoomedIn: boolean = false;
 
   constructor() {
     // 1. Lấy Canvas trước tiên
@@ -62,6 +64,53 @@ export default class World {
     window.addEventListener("click", () => this.analyzer.play(), {
       once: true,
     });
+
+    this.setupZoomKey();
+  }
+
+  private setupZoomKey() {
+    window.addEventListener("keydown", (event) => {
+      if (event.code === "Enter") {
+        this.toggleZoom();
+      }
+    });
+  }
+
+  private toggleZoom() {
+    this.isZoomedIn = !this.isZoomedIn;
+
+    if (this.isZoomedIn) {
+      // HIỆU ỨNG ÙA VÀO TÂM (Zoom-In)
+      // Di chuyển camera đến sát bàn DJ (ví dụ tọa độ x:0, y:5, z:10)
+      gsap.to(this.camera.instance.position, {
+        x: 0,
+        y: 6,
+        z: 6,
+        duration: 2, // Thời gian bay là 2 giây
+        ease: "expo.out",
+      });
+
+      gsap.to(this.camera.instance, {
+        fov: 85,
+        duration: 1.5,
+        onUpdate: () => this.camera.instance.updateProjectionMatrix(),
+      });
+    } else {
+      // HIỆU ỨNG ÙA RA GÓC TỔNG (Zoom-Out)
+      // Trả camera về vị trí ban đầu (ví dụ tọa độ cũ của bạn là z:40)
+      gsap.to(this.camera.instance.position, {
+        x: 18,
+        y: 15,
+        z: 18,
+        duration: 2.5,
+        ease: "power2.inOut",
+      });
+      gsap.to(this.camera.instance, {
+        fov: 75,
+        duration: 2,
+        onUpdate: () => this.camera.instance.updateProjectionMatrix(),
+      });
+    }
   }
 
   toggleMusic() {

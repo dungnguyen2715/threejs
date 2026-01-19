@@ -41,7 +41,7 @@ export default class Visualizer {
         this.djTable = gltf.scene;
 
         // Điều chỉnh kích thước và vị trí bàn DJ
-        this.djTable.scale.set(0.3, 0.3, 0.3);
+        this.djTable.scale.set(0.2, 0.2, 0.2);
         this.djTable.position.set(0, 0, 0);
 
         // Duyệt qua các phần của model để bật hiệu ứng phát sáng (nếu có)
@@ -175,7 +175,7 @@ export default class Visualizer {
 
     if (this.djTable) {
       // 1. Đồng bộ độ nảy (Scale) - như đã nói ở bước trước
-      const bounceScale = 0.3 * (1 + bassIntensity * 1.5);
+      const bounceScale = 0.2 * (1 + bassIntensity * 1.5);
       this.djTable.scale.set(bounceScale, bounceScale, bounceScale);
 
       // 2. TẠO HIỆU ỨNG TƯNG TƯNG (Position Y)
