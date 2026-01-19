@@ -136,7 +136,31 @@ export default class World {
     );
 
     // 3. ĐIỀU KHIỂN CAMERA (Dùng smoothBass)
-    this.camera.applyAudioReaction(this.smoothBass);
+    const isShock = this.camera.applyAudioReaction(this.smoothBass);
+
+    if (this.renderer.instance) {
+      let targetExposure = 1.0; // Mức sáng bình thường
+      let targetBgColor = new THREE.Color("#000000"); // Màu nền bình thường (đen)
+
+      if (isShock) {
+        // Khi có cú hích Bass: Đẩy sáng cực đại và đổi nền thành trắng
+        targetExposure = 4.0;
+        targetBgColor = new THREE.Color("#ffffff");
+      }
+
+      // Dùng LERP để mọi thứ hồi phục về trạng thái cũ một cách mượt mà
+      // Hồi phục Exposure
+      this.renderer.instance.toneMappingExposure = THREE.MathUtils.lerp(
+        this.renderer.instance.toneMappingExposure,
+        targetExposure,
+        0.1, // Tốc độ hồi phục (càng nhỏ càng chậm)
+      );
+      // Hồi phục màu nền Scene
+      this.scene.background = (this.scene.background as THREE.Color).lerp(
+        targetBgColor,
+        0.1,
+      );
+    }
 
     // 4. TRUYỀN VÀO VISUALIZER (Dùng smoothBass cho hạt và cột nhạc)
     this.visualizer.update(this.smoothBass);

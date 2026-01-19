@@ -17,6 +17,10 @@ export default class Visualizer {
 
   djTable: THREE.Group | null = null;
 
+  // Thêm vào phần khai báo thuộc tính ở đầu class
+  private shockwaves: THREE.Mesh[] = [];
+  private readonly maxShockwaves = 5; // Số lượng vòng tròn tối đa xuất hiện cùng lúc
+
   constructor(scene: THREE.Scene, analyzer: AudioAnalyzer, time: Time) {
     this.scene = scene;
     this.analyzer = analyzer;
@@ -28,8 +32,47 @@ export default class Visualizer {
     this.createBars();
     this.createParticles();
     this.createFloor();
-
+    this.createShockwaves();
     this.scene.add(this.group);
+  }
+
+  private createShockwaves() {
+    const geometry = new THREE.IcosahedronGeometry(1, 2);
+    for (let i = 0; i < this.maxShockwaves; i++) {
+      const material = new THREE.MeshBasicMaterial({
+        color: "#ffffff",
+        transparent: true,
+        wireframe: true, // Để nhìn giống lưới năng lượng, hoặc false nếu muốn quầng sáng đặc
+        opacity: 0,
+        side: THREE.DoubleSide,
+        depthWrite: false, // Ngăn lỗi hiển thị đè lên sàn gương
+        blending: THREE.AdditiveBlending, // Làm hiệu ứng phát sáng rực rỡ
+      });
+
+      const wave = new THREE.Mesh(geometry, material);
+      // wave.rotation.x = -Math.PI / 2; // Nằm bẹt trên sàn
+      // wave.position.y = 0.01; // Cao hơn sàn gương một chút để không bị nhấp nháy (Z-fighting)
+      wave.visible = false; // Ban đầu ẩn đi
+
+      this.shockwaves.push(wave);
+      this.group.add(wave);
+    }
+  }
+  private triggerShockwave(intensity: number) {
+    // Tìm vòng tròn đầu tiên đang không hiển thị
+    const wave = this.shockwaves.find((w) => !w.visible);
+
+    if (wave) {
+      wave.visible = true;
+      wave.scale.set(1, 1, 1);
+      (wave.material as THREE.MeshBasicMaterial).opacity = intensity * 0.8;
+
+      // Đổi màu ngẫu nhiên theo tone nhạc của bạn (ví dụ: Trắng/Hồng/Xanh)
+      const colors = ["#ffffff", "#ff0055", "#00ffff"];
+      (wave.material as THREE.MeshBasicMaterial).color.set(
+        colors[Math.floor(Math.random() * colors.length)],
+      );
+    }
   }
 
   private loadDJTableModel() {
@@ -204,5 +247,28 @@ export default class Visualizer {
     treble /= 20;
 
     this.group.rotation.y += 0.002 + (treble / 255) * 0.02;
+
+    // 1. Kiểm tra đỉnh Bass để kích hoạt vòng tròn
+    // Nếu Bass cực mạnh (> 0.9) và cường độ thô của nhạc đang cao
+    if (bassIntensity > 0.8) {
+      this.triggerShockwave(bassIntensity);
+    }
+
+    // 2. Cập nhật chuyển động cho tất cả vòng tròn đang hiện diện
+    this.shockwaves.forEach((wave) => {
+      if (wave.visible) {
+        const mat = wave.material as THREE.MeshBasicMaterial;
+        // Lan tỏa rộng ra
+        wave.scale.addScalar(1.2 + bassIntensity * 2.0);
+        // Mờ dần theo thời gian
+        mat.opacity -= 0.025;
+
+        // Khi đã quá mờ hoặc quá to, ẩn đi để dùng lại (Recycle)
+        if (mat.opacity <= 0 || wave.scale.x > 150) {
+          wave.visible = false;
+          mat.opacity = 0;
+        }
+      }
+    });
   }
 }

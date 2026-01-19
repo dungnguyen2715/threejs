@@ -49,7 +49,9 @@ export default class Camera {
       const shake = 2;
       this.instance.position.x += (Math.random() - 0.5) * shake;
       this.instance.position.y += (Math.random() - 0.5) * shake;
+      return true
     }
+    return false
   }
 
   resize() {
