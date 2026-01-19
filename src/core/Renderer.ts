@@ -44,7 +44,6 @@ export default class Renderer {
   }
 
   private setPostProcessing() {
-    // 1. Khởi tạo Composer
     this.composer = new EffectComposer(this.instance);
   }
 

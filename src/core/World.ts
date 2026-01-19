@@ -20,7 +20,6 @@ export default class World {
   canvas!: HTMLCanvasElement;
   private smoothBass: number = 0;
   private isZoomedIn: boolean = false;
-  // Thêm vào trong class World
   private cameraPresets = [
     { position: { x: 18, y: 15, z: 18 }, fov: 75, name: "Góc rộng tổng cảnh" },
     { position: { x: 0, y: 5, z: 10 }, fov: 85, name: "Cận cảnh bàn DJ" },
@@ -60,8 +59,6 @@ export default class World {
 
     // 5. Lắng nghe sự kiện
     this.sizes.on("resize", () => this.resize());
-
-    // Nếu dùng EventEmitter từ thư viện events
     this.time.on("tick", () => this.update());
     this.setupEvents();
   }
@@ -97,9 +94,34 @@ export default class World {
       }
       if (e.code === "Enter") this.toggleZoom();
     });
+
+    window.addEventListener("keydown", (e) => {
+      // Nhấn phím 'F' để bật/tắt Fullscreen
+      if (e.code === "KeyF") {
+        this.toggleFullscreen();
+      }
+    });
   }
+
+  private toggleFullscreen() {
+    // Kiểm tra xem trình duyệt đã ở chế độ Fullscreen chưa
+    const fullscreenElement = document.fullscreenElement;
+
+    if (!fullscreenElement) {
+      // Nếu chưa: Yêu cầu vào chế độ Fullscreen
+      const canvas = this.canvas;
+      if (canvas.requestFullscreen) {
+        canvas.requestFullscreen();
+      }
+    } else {
+      // Nếu rồi: Thoát chế độ Fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  }
+
   private switchCameraView() {
-    // Chọn preset tiếp theo
     this.currentPresetIndex =
       (this.currentPresetIndex + 1) % this.cameraPresets.length;
     const preset = this.cameraPresets[this.currentPresetIndex];
@@ -109,7 +131,7 @@ export default class World {
       x: preset.position.x,
       y: preset.position.y,
       z: preset.position.z,
-      duration: 3, // Di chuyển trong 3 giây cho mượt
+      duration: 3,
       ease: "power2.inOut",
     });
 
@@ -237,16 +259,6 @@ export default class World {
         0.1,
       );
     }
-
-    // 6. FLASH EXPOSURE (Dùng smoothBass)
-    // if (this.renderer.instance) {
-    //   const targetExposure = 1.0 + this.smoothBass * 1.5;
-    //   this.renderer.instance.toneMappingExposure = THREE.MathUtils.lerp(
-    //     this.renderer.instance.toneMappingExposure,
-    //     targetExposure,
-    //     0.2,
-    //   );
-    // }
 
     this.renderer.update(this.scene, this.camera.instance);
   }
